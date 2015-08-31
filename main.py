@@ -25,9 +25,11 @@
 IDPRODUCT = 0x0
 IDVENDOR = 0x0
 
+import sys
 import usb.core
 import pprint
 import threading
+import argparse
 from ola.ClientWrapper import ClientWrapper
 
 
@@ -59,6 +61,30 @@ def NewData(data):
 	print data
 
 def main():
+	
+	# Parse command line argument
+	parser = argparse.ArgumentParser(description="Sending DMX order to the arduino board, for remote control")
+	parser.add_argument("-c", "--channel", dest="channel", help="DMX channel from 0 to 508", type=int, required=True)
+	parser.add_argument("-u", "--universe", dest="universe", help="DMX universe from 1 to 4 (default is 1)", type=int, default=1)
+
+	args = vars(parser.parse_args())
+	
+	if args['channel'] > 508 or args['channel'] < 0:
+		sys.exit("\nError: Channel must be  between 0 and 508\n\n")
+	
+	if  args['universe'] < 1 or args['universe'] > 4:
+		sys.exit("\nError: Universe must be  between 0 and 4\n\n")
+		
+	universe = args['universe']
+	channel=args['channel']
+	
+	print("Working on universe {}".format(universe))
+	print("""Used DMX channel:
+	- DMX channel {}: allocated to arduino channel 0
+	- DMX channel {}: allocated to arduino channel 1
+	- DMX channel {}: allocated to arduino channel 2
+	- DMX channel {}: allocated to arduino channel 3
+""".format(channel, channel+1, channel+2, channel+3, channel+4))	
 	
 	#usb_dev = find_board()
 	#pprint.pprint(usb_dev)
