@@ -22,11 +22,12 @@
 #  
 #  
 
-IDPRODUCT = 0x0
-IDVENDOR = 0x0
+IDPRODUCT = 0x003
+IDVENDOR = 0x0e0f
 
 import sys
 import usb.core
+import serial
 import pprint
 import threading
 import argparse
@@ -53,7 +54,7 @@ def find_board(bus=None, idVendor=IDVENDOR, idProduct=IDPRODUCT):
 	
 	lst = []
 	for device in dev:
-		lst.append("/dev/bus/usb/%s/%s" % (device.bus, device.address))
+		lst.append("/dev/bus/usb/%03d/%03d" % (device.bus, device.address))
 	return lst
 
 def NewData(data):
@@ -99,6 +100,28 @@ def main():
 	global channel
 	channel=args['channel']
 	
+	# Find arduino board
+	usb_dev = find_board()
+	
+	if len(usb_dev) == 0:
+		# No board found
+		sys.exit("\nError: no arduino board found !\n\n")
+	
+	if len(usb_dev) > 1:
+		# Several board found, not managed yet
+		sys.exit("\nError: several arduino board found, please let only one\n\n")
+
+	print("\nFind arduino board on device {}\n".format(usb_dev[0]))
+		
+	# Open serial communication
+	try:
+		ser = serial.Serial(usb_dev[0], 9600)
+	except:
+		# Cannot open serial line with arduino
+		raise
+	
+	
+	
 	print("Working on universe {}".format(universe))
 	print("""Used DMX channel:
 	- DMX channel {}: allocated to arduino channel 0
@@ -106,10 +129,7 @@ def main():
 	- DMX channel {}: allocated to arduino channel 2
 	- DMX channel {}: allocated to arduino channel 3
 """.format(channel, channel+1, channel+2, channel+3, channel+4))	
-	
-	#usb_dev = find_board()
-	#pprint.pprint(usb_dev)
-	
+		
 	universe = 1
 	wrapper = ClientWrapper()
 	client = wrapper.Client()
