@@ -32,6 +32,9 @@ import threading
 import argparse
 from ola.ClientWrapper import ClientWrapper
 
+# Channel must be global to be accessbile from callback function
+channel = 0
+
 
 def find_board(bus=None, idVendor=IDVENDOR, idProduct=IDPRODUCT):
 	'''Search the ardruino board over USB present devices
@@ -58,8 +61,24 @@ def NewData(data):
 	data is a 512 array of bytes. DMX channel is the index and the value is the DMX value
 	"""
 	
-	print data
+	# DMX value deconding:
+	# - 0 to 127: means OFF
+	# - 1 to 254: means ON
+	
+	i = 0
+	while i<4:
+		# Get DMX order for the channel
+		dmxorder = data[channel+i]
+		if dmxorder > 127:
+			strtosend = "{}:ON".format(i)
+		else:
+			strtosend = "{}:OFF".format(i)
 
+		#TODO: send to arduino
+		print(strtosend)
+		
+		i = i+1
+	
 def main():
 	
 	# Parse command line argument
@@ -76,6 +95,8 @@ def main():
 		sys.exit("\nError: Universe must be  between 0 and 4\n\n")
 		
 	universe = args['universe']
+	
+	global channel
 	channel=args['channel']
 	
 	print("Working on universe {}".format(universe))
