@@ -27,6 +27,9 @@ IDVENDOR = 0x0
 
 import usb.core
 import pprint
+import threading
+from ola.ClientWrapper import ClientWrapper
+
 
 def find_board(bus=None, idVendor=IDVENDOR, idProduct=IDPRODUCT):
 	'''Search the ardruino board over USB present devices
@@ -48,10 +51,23 @@ def find_board(bus=None, idVendor=IDVENDOR, idProduct=IDPRODUCT):
 		lst.append("/dev/bus/usb/%s/%s" % (device.bus, device.address))
 	return lst
 
+def NewData(data):
+	""" Data received
+	data is a 512 array of bytes. DMX channel is the index and the value is the DMX value
+	"""
+	
+	print data
+
 def main():
 	
-	usb_dev = find_board()
-	pprint.pprint(usb_dev)
+	#usb_dev = find_board()
+	#pprint.pprint(usb_dev)
+	
+	universe = 1
+	wrapper = ClientWrapper()
+	client = wrapper.Client()
+	client.RegisterUniverse(universe, client.REGISTER, NewData)
+	wrapper.Run()
 	
 if __name__ == '__main__':
 	main()
