@@ -37,6 +37,10 @@ from ola.ClientWrapper import ClientWrapper
 # Channel must be global to be accessbile from callback function
 channel = 0
 
+wrapper = ClientWrapper()
+stopEvent = threading.Event()
+
+
 
 def find_board(bus=None, idVendor=IDVENDOR, idProduct=IDPRODUCT):
 	'''Search the ardruino board over USB present devices
@@ -81,11 +85,13 @@ def NewData(data):
 		i = i+1
 	
 	# If 'q' is press, stop wrapper thread and quit the program
-	# TODO
+	if stopEvent.is_set():
+		wrapper.Stop()
 	
 def communicate(evt):
 	'''Manage serial data comming from arduino and input keyboard'''
 	pass
+
 	
 def main():
 	
@@ -127,8 +133,6 @@ def main():
 		# Cannot open serial line with arduino
 		raise
 	
-	
-	
 	print("Working on universe {}".format(universe))
 	print("""Used DMX channel:
 	- DMX channel {}: allocated to arduino channel 0
@@ -138,12 +142,10 @@ def main():
 """.format(channel, channel+1, channel+2, channel+3, channel+4))	
 		
 	universe = 1
-	wrapper = ClientWrapper()
 	client = wrapper.Client()
 	client.RegisterUniverse(universe, client.REGISTER, NewData)
 	
 	# Create an  event to stop the program
-	stopEvent = threading.Event()
 	
 	# Create a thread for arduino communication and keyboard input
 	com = threading.Thread(None, communicate, (stopEvent,))
