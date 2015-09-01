@@ -39,7 +39,7 @@ channel = 0
 
 wrapper = ClientWrapper()
 stopEvent = threading.Event()
-
+ser = None
 
 
 def find_board(bus=None, idVendor=IDVENDOR, idProduct=IDPRODUCT):
@@ -90,7 +90,12 @@ def NewData(data):
 	
 def communicate(evt):
 	'''Manage serial data comming from arduino and input keyboard'''
-	pass
+	
+	# get data from arduino and display it
+	line = ser.readline()
+	print(">>> \033[1m{}\033[0m".format(line))
+	
+	
 
 	
 def main():
@@ -128,7 +133,7 @@ def main():
 		
 	# Open serial communication
 	try:
-		ser = serial.Serial(usb_dev[0], 9600)
+		ser = serial.Serial(usb_dev[0], 9600, timeout=0.5)
 	except:
 		# Cannot open serial line with arduino
 		raise
