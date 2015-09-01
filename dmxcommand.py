@@ -23,8 +23,8 @@
 #  
 
 # TO BE DEFINE
-IDPRODUCT = 0x003
-IDVENDOR = 0x0e0f
+IDPRODUCT = 0x4d03
+IDVENDOR = 0x0461
 
 import sys
 import usb.core
@@ -88,15 +88,23 @@ def NewData(data):
 	if stopEvent.is_set():
 		wrapper.Stop()
 	
-def communicate(evt):
-	'''Manage serial data comming from arduino and input keyboard'''
+def get_serial(evt):
+	'''Manage serial data comming from arduino'''
 	
-	# get data from arduino and display it
-	line = ser.readline()
-	print(">>> \033[1m{}\033[0m".format(line))
+	while not evt.is_set():
+		# get data from arduino and display it
+		#line = ser.readline()
+		#print(">>> \033[1m{}\033[0m".format(line))
+		pass
 	
+def get_keyboard(evt):
+	''' Read keyboard input and exit program when 'q' is pressed'''
 	
-
+	c = ''
+	while(c != 'q' and c != 'Q'):
+		c = raw_input("Press 'q' to quit>")
+	# Send event to terminate all threads
+	evt.set()
 	
 def main():
 	
@@ -136,12 +144,13 @@ def main():
 		ser = serial.Serial(usb_dev[0], 9600, timeout=0.5)
 	except:
 		# Cannot open serial line with arduino
-		raise
+		#raise
+		pass
 	
 	print("Working on universe {}".format(universe))
 	print("""Used DMX channel:
 	- DMX channel {}: allocated to arduino channel 0
-	- DMX channel {}: allocated to arduino channel 1
+	- DMX channel {}: alloc1ated to arduino channel 1
 	- DMX channel {}: allocated to arduino channel 2
 	- DMX channel {}: allocated to arduino channel 3
 """.format(channel, channel+1, channel+2, channel+3, channel+4))	
@@ -152,11 +161,18 @@ def main():
 	
 	# Create an  event to stop the program
 	
-	# Create a thread for arduino communication and keyboard input
-	com = threading.Thread(None, communicate, (stopEvent,))
+	# Create threads for arduino communication and keyboard input
+	usbcom_th = threading.Thread(None, get_serial, args = (stopEvent,))
+	usbcom_th.start()
+	keyboard_th = threading.Thread(None, get_keyboard, args = (stopEvent,))
+	keyboard_th.start()
 	
 	wrapper.Run()
 	
+	# Wait all thread to stop
+	usbcom_th.join()
+	keyboard_th.join()
+
 if __name__ == '__main__':
 	main()
 
