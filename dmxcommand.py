@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  main.py
+#  dmxcommand.py
 #  
-#  Copyright 2015 dassier <dassier@debtst64>
+#  Copyright 2015 Patrick Dssier <pdassier@free.fr>
 #  
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #  
 #  
 
+# TO BE DEFINE
 IDPRODUCT = 0x003
 IDVENDOR = 0x0e0f
 
@@ -77,8 +78,14 @@ def NewData(data):
 
 		#TODO: send to arduino
 		print(strtosend)
-		
 		i = i+1
+	
+	# If 'q' is press, stop wrapper thread and quit the program
+	# TODO
+	
+def communicate(evt):
+	'''Manage serial data comming from arduino and input keyboard'''
+	pass
 	
 def main():
 	
@@ -134,6 +141,13 @@ def main():
 	wrapper = ClientWrapper()
 	client = wrapper.Client()
 	client.RegisterUniverse(universe, client.REGISTER, NewData)
+	
+	# Create an  event to stop the program
+	stopEvent = threading.Event()
+	
+	# Create a thread for arduino communication and keyboard input
+	com = threading.Thread(None, communicate, (stopEvent,))
+	
 	wrapper.Run()
 	
 if __name__ == '__main__':
