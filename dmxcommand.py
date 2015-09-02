@@ -23,7 +23,9 @@
 #  
 
 __VERSION__ = "0.1"
-DESCRIPTION = "dmxcommand v{}\nSending DMX order to the arduino board, for remote control".format(__VERSION__)
+__DESCRIPTION__ = "dmxcommand v{}\nSending DMX order to the arduino board, for remote control".format(__VERSION__)
+__PROMPT__ = "Press 'q' to quit >>> "
+
 
 # TO BE DEFINE
 #IDPRODUCT = 0x4d03
@@ -31,7 +33,6 @@ DESCRIPTION = "dmxcommand v{}\nSending DMX order to the arduino board, for remot
 IDPRODUCT = 0x003
 IDVENDOR = 0x0e0f
 
-PROMPT = "Press 'q' to quit"
 
 import sys
 import usb.core
@@ -43,8 +44,6 @@ from ola.ClientWrapper import ClientWrapper
 
 # Channel must be global to be accessible from callback function
 channel = 0
-
-wrapper = ClientWrapper()
 
 
 def find_board(bus=None, idVendor=IDVENDOR, idProduct=IDPRODUCT):
@@ -98,10 +97,10 @@ def get_serial(evt, ser):
 		
 		if len(line) > 0:
 			# There's something to display
-			print("Press 'q' to quit>>> \033[1m{}\033[0m".format(line))
+			print(__PROMPT__ + "\033[1m{}\033[0m".format(line))
 		else:
 			# DEBUG
-			print("Press 'q' to quit>>> \033[1mDEBUG\033[0m".format(line))
+			print(__PROMPT__ + "\033[1mDEBUG\033[0m".format(line))
 
 			
 	
@@ -113,11 +112,11 @@ def get_keyboard(evt):
 	
 	c = ''
 	while(c != 'q' and c != 'Q'):
-		c = raw_input(PROMPT)
+		c = raw_input(__PROMPT__)
 	# Send event to terminate all threads
 	evt.set()
 	
-def stop_prog(evt):
+def stop_prog(evt, wrapper):
 	''' Stop OLA wrapper before exiting program'''
 	
 	# Wait until stop event is set
@@ -129,13 +128,13 @@ def stop_prog(evt):
 def main():
 	
 	# Parse command line argument
-	parser = argparse.ArgumentParser(description=DESCRIPTION)
+	parser = argparse.ArgumentParser(description=__DESCRIPTION__)
 	parser.add_argument("-c", "--channel", dest="channel", help="DMX channel from 0 to 508", type=int, required=True)
 	parser.add_argument("-u", "--universe", dest="universe", help="DMX universe from 1 to 4 (default is 1)", type=int, default=1)
 
 	args = vars(parser.parse_args())
 	
-	print(DESCRIPTION)
+	print(__DESCRIPTION__)
 	
 	if args['channel'] > 508 or args['channel'] < 0:
 		sys.exit("\nError: Channel must be  between 0 and 508\n\n")
@@ -179,6 +178,7 @@ def main():
 """.format(channel, channel+1, channel+2, channel+3, channel+4))	
 		
 	universe = 1
+	wrapper = ClientWrapper()
 	client = wrapper.Client()
 	client.RegisterUniverse(universe, client.REGISTER, NewData)
 	
@@ -190,7 +190,7 @@ def main():
 	usbcom_th.start()
 	keyboard_th = threading.Thread(None, get_keyboard, args = (stopEvent,))
 	keyboard_th.start()
-	stop_th = threading.Thread(None, stop_prog, args = (stopEvent,))
+	stop_th = threading.Thread(None, stop_prog, args = (stopEvent, wrapper))
 	stop_th.start()
 
 	
