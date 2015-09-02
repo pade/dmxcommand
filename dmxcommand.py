@@ -22,9 +22,15 @@
 #  
 #  
 
+__VERSION__ = "0.1"
+DESCRIPTION = "dmxcommand v{}\nSending DMX order to the arduino board, for remote control".format(__VERSION__)
+
 # TO BE DEFINE
-IDPRODUCT = 0x4d03
-IDVENDOR = 0x0461
+#IDPRODUCT = 0x4d03
+#IDVENDOR = 0x0461
+IDPRODUCT = 0x003
+IDVENDOR = 0x0e0f
+
 
 import sys
 import usb.core
@@ -34,12 +40,10 @@ import threading
 import argparse
 from ola.ClientWrapper import ClientWrapper
 
-# Channel must be global to be accessbile from callback function
+# Channel must be global to be accessible from callback function
 channel = 0
 
 wrapper = ClientWrapper()
-stopEvent = threading.Event()
-ser = None
 
 
 def find_board(bus=None, idVendor=IDVENDOR, idProduct=IDPRODUCT):
@@ -67,7 +71,7 @@ def NewData(data):
 	data is a 512 array of bytes. DMX channel is the index and the value is the DMX value
 	"""
 	
-	# DMX value deconding:
+	# DMX value decoding:
 	# - 0 to 127: means OFF
 	# - 1 to 254: means ON
 	
@@ -84,18 +88,19 @@ def NewData(data):
 		print(strtosend)
 		i = i+1
 	
-	# If 'q' is press, stop wrapper thread and quit the program
-	if stopEvent.is_set():
-		wrapper.Stop()
-	
-def get_serial(evt):
+def get_serial(evt, ser):
 	'''Manage serial data comming from arduino'''
 	
 	while not evt.is_set():
 		# get data from arduino and display it
-		#line = ser.readline()
-		#print(">>> \033[1m{}\033[0m".format(line))
-		pass
+		line = ser.readline()
+		
+		if len(line) > 0:
+			# There's something to display
+			print(">>> \033[1m{}\033[0m".format(line))
+	
+	#Stop serial communication with arduino
+	ser.close()
 	
 def get_keyboard(evt):
 	''' Read keyboard input and exit program when 'q' is pressed'''
@@ -106,14 +111,25 @@ def get_keyboard(evt):
 	# Send event to terminate all threads
 	evt.set()
 	
+def stop_prog(evt):
+	''' Stop OLA wrapper before exiting program'''
+	
+	while not evt.is_set():
+		#Do nothing
+		pass	
+	#event is set, stop OLA wrapper
+	wrapper.Stop()
+	
 def main():
 	
 	# Parse command line argument
-	parser = argparse.ArgumentParser(description="Sending DMX order to the arduino board, for remote control")
+	parser = argparse.ArgumentParser(description=DESCRIPTION)
 	parser.add_argument("-c", "--channel", dest="channel", help="DMX channel from 0 to 508", type=int, required=True)
 	parser.add_argument("-u", "--universe", dest="universe", help="DMX universe from 1 to 4 (default is 1)", type=int, default=1)
 
 	args = vars(parser.parse_args())
+	
+	print(DESCRIPTION)
 	
 	if args['channel'] > 508 or args['channel'] < 0:
 		sys.exit("\nError: Channel must be  between 0 and 508\n\n")
@@ -144,8 +160,7 @@ def main():
 		ser = serial.Serial(usb_dev[0], 9600, timeout=0.5)
 	except:
 		# Cannot open serial line with arduino
-		#raise
-		pass
+		raise
 	
 	print("Working on universe {}".format(universe))
 	print("""Used DMX channel:
@@ -160,18 +175,23 @@ def main():
 	client.RegisterUniverse(universe, client.REGISTER, NewData)
 	
 	# Create an  event to stop the program
-	
-	# Create threads for arduino communication and keyboard input
-	usbcom_th = threading.Thread(None, get_serial, args = (stopEvent,))
+	stopEvent = threading.Event()
+
+	# Create threads for arduino communication, keyboard input and OLA wrapper management
+	usbcom_th = threading.Thread(None, get_serial, args = (stopEvent, ser))
 	usbcom_th.start()
 	keyboard_th = threading.Thread(None, get_keyboard, args = (stopEvent,))
 	keyboard_th.start()
+	stop_th = threading.Thread(None, stop_prog, args = (stopEvent,))
+	stop_th.start()
+
 	
 	wrapper.Run()
 	
 	# Wait all thread to stop
 	usbcom_th.join()
 	keyboard_th.join()
+	stop_th.join()
 
 if __name__ == '__main__':
 	main()
