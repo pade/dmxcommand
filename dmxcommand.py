@@ -31,6 +31,7 @@ DESCRIPTION = "dmxcommand v{}\nSending DMX order to the arduino board, for remot
 IDPRODUCT = 0x003
 IDVENDOR = 0x0e0f
 
+PROMPT = "Press 'q' to quit"
 
 import sys
 import usb.core
@@ -97,7 +98,12 @@ def get_serial(evt, ser):
 		
 		if len(line) > 0:
 			# There's something to display
-			print(">>> \033[1m{}\033[0m".format(line))
+			print("Press 'q' to quit>>> \033[1m{}\033[0m".format(line))
+		else:
+			# DEBUG
+			print("Press 'q' to quit>>> \033[1mDEBUG\033[0m".format(line))
+
+			
 	
 	#Stop serial communication with arduino
 	ser.close()
@@ -107,16 +113,16 @@ def get_keyboard(evt):
 	
 	c = ''
 	while(c != 'q' and c != 'Q'):
-		c = raw_input("Press 'q' to quit>")
+		c = raw_input(PROMPT)
 	# Send event to terminate all threads
 	evt.set()
 	
 def stop_prog(evt):
 	''' Stop OLA wrapper before exiting program'''
 	
-	while not evt.is_set():
-		#Do nothing
-		pass	
+	# Wait until stop event is set
+	evt.wait()
+	
 	#event is set, stop OLA wrapper
 	wrapper.Stop()
 	
@@ -157,10 +163,12 @@ def main():
 		
 	# Open serial communication
 	try:
-		ser = serial.Serial(usb_dev[0], 9600, timeout=0.5)
+		#ser = serial.Serial(usb_dev[0], 9600, timeout=0.5)
+		ser = serial.Serial("/dev/ttyS0", 9600, timeout=0.5)
 	except:
 		# Cannot open serial line with arduino
 		raise
+		
 	
 	print("Working on universe {}".format(universe))
 	print("""Used DMX channel:
@@ -192,6 +200,8 @@ def main():
 	usbcom_th.join()
 	keyboard_th.join()
 	stop_th.join()
+	
+	print ("\nTerminated on user request")
 
 if __name__ == '__main__':
 	main()
