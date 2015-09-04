@@ -37,13 +37,13 @@ IDVENDOR = 0x0e0f
 import sys
 import usb.core
 import serial
-import pprint
 import threading
 import argparse
 from ola.ClientWrapper import ClientWrapper
 
-# Channel must be global to be accessible from callback function
+# channel and sercom must be global to be accessible from callback function
 channel = 0
+sercom = None
 
 
 def find_board(bus=None, idVendor=IDVENDOR, idProduct=IDPRODUCT):
@@ -66,7 +66,7 @@ def find_board(bus=None, idVendor=IDVENDOR, idProduct=IDPRODUCT):
 		lst.append("/dev/bus/usb/%03d/%03d" % (device.bus, device.address))
 	return lst
 
-def NewData(data):
+def get_data(data):
 	""" Data received
 	data is a 512 array of bytes. DMX channel is the index and the value is the DMX value
 	"""
@@ -84,7 +84,12 @@ def NewData(data):
 		else:
 			strtosend = "{}:OFF".format(i)
 
-		#TODO: send to arduino
+		# send to arduino
+		try:
+			sercom.write(strtosend)
+		except:
+			print("ERROR: unable to send '{}' to arduino board".format(strtosend))
+		
 		print(strtosend)
 		i = i+1
 	
@@ -162,8 +167,8 @@ def main():
 		
 	# Open serial communication
 	try:
-		#ser = serial.Serial(usb_dev[0], 9600, timeout=0.5)
-		ser = serial.Serial("/dev/ttyS0", 9600, timeout=0.5)
+		#sercom = serial.Serial(usb_dev[0], 9600, timeout=0.5, writeTimeout=1)
+		sercom = serial.Serial("/dev/ttyS0", 9600, timeout=0.5, writeTimeout=1)
 	except:
 		# Cannot open serial line with arduino
 		raise
@@ -180,13 +185,13 @@ def main():
 	universe = 1
 	wrapper = ClientWrapper()
 	client = wrapper.Client()
-	client.RegisterUniverse(universe, client.REGISTER, NewData)
+	client.RegisterUniverse(universe, client.REGISTER, get_data)
 	
 	# Create an  event to stop the program
 	stopEvent = threading.Event()
 
 	# Create threads for arduino communication, keyboard input and OLA wrapper management
-	usbcom_th = threading.Thread(None, get_serial, args = (stopEvent, ser))
+	usbcom_th = threading.Thread(None, get_serial, args = (stopEvent, sercom))
 	usbcom_th.start()
 	keyboard_th = threading.Thread(None, get_keyboard, args = (stopEvent,))
 	keyboard_th.start()
