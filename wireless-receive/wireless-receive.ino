@@ -26,7 +26,17 @@ RH_ASK driver;
 
 void setup() {
 
+  pinMode(13, OUTPUT);
+  for (int i=0; i<10; i++)
+  {
+    digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
+    delay(100);              // wait
+    digitalWrite(13, LOW);    // turn the LED off by making the voltage LOW
+    delay(100);              // wait
+  }
+
   Serial.begin(9600);
+  Serial.println("Receiver initialisation...");
   if (!driver.init())
          Serial.println("RF driver failed");
 
@@ -36,10 +46,17 @@ void loop() {
 
   uint8_t buf[RH_ASK_MAX_MESSAGE_LEN];
   uint8_t buflen = sizeof(buf);
+  char c;
+  uint8_t *p;
 
   if (driver.recv(buf, &buflen)) // Non-blocking
   {
     // Message with a good checksum received, dump it.
-    driver.printBuffer("Got:", buf, buflen);
+    //driver.printBuffer("Got:", buf, buflen);
+    Serial.write(buf, buflen);
+    Serial.println("");
+
   }
 }
+
+

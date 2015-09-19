@@ -30,8 +30,8 @@ __PROMPT__ = "Press 'q' to quit >>> "
 # TO BE DEFINE
 #IDPRODUCT = 0x4d03
 #IDVENDOR = 0x0461
-IDPRODUCT = 0x003
-IDVENDOR = 0x0e0f
+IDPRODUCT = 0x7523
+IDVENDOR = 0x1a86
 
 
 import sys
@@ -167,8 +167,8 @@ def main():
 		
 	# Open serial communication
 	try:
-		#sercom = serial.Serial(usb_dev[0], 9600, timeout=0.5, writeTimeout=1)
-		sercom = serial.Serial("/dev/ttyS0", 9600, timeout=0.5, writeTimeout=1)
+		sercom = serial.Serial(usb_dev[0], 9600, timeout=0.5, writeTimeout=1)
+		#sercom = serial.Serial("/dev/ttyS0", 9600, timeout=0.5, writeTimeout=1)
 	except:
 		# Cannot open serial line with arduino
 		raise
