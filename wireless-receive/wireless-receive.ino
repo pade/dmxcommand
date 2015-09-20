@@ -12,12 +12,12 @@
  * Input channel affected to this board
  * TODO: select input thanks to a DIP switch
  */
-#define CHANNEL 1
+#define CHANNEL '1'
 
 /*
  * Limited max message lenght to preserve RAM
  */
-#define RH_ASK_MAX_MESSAGE_LEN 40
+//#define RH_ASK_MAX_MESSAGE_LEN 40
 
 /*
  * Global varaible
@@ -26,12 +26,12 @@ RH_ASK driver;
 
 void setup() {
 
-  pinMode(13, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   for (int i=0; i<10; i++)
   {
-    digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
+    digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
     delay(100);              // wait
-    digitalWrite(13, LOW);    // turn the LED off by making the voltage LOW
+    digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
     delay(100);              // wait
   }
 
@@ -46,16 +46,28 @@ void loop() {
 
   uint8_t buf[RH_ASK_MAX_MESSAGE_LEN];
   uint8_t buflen = sizeof(buf);
-  char c;
-  uint8_t *p;
 
   if (driver.recv(buf, &buflen)) // Non-blocking
   {
     // Message with a good checksum received, dump it.
-    //driver.printBuffer("Got:", buf, buflen);
     Serial.write(buf, buflen);
     Serial.println("");
 
+    // Check if message is for our channel
+    if((buf[0] == CHANNEL) && (buf[1] == ':'))
+    {
+      // Get order from message
+      if((buf[2] == 'O') && (buf[3] == 'N'))
+      {
+        // TODO: ON
+        digitalWrite(LED_BUILTIN, HIGH);
+      }
+      else if((buf[2] == 'O') && (buf[3] == 'F') && (buf[4] == 'F'))
+      {
+        // TODO: OFF
+        digitalWrite(LED_BUILTIN, LOW);
+      }
+    }
   }
 }
 
