@@ -33,6 +33,8 @@ __PROMPT__ = "Press 'q' to quit >>> "
 IDPRODUCT = 0x7523
 IDVENDOR = 0x1a86
 
+NB_CHANNEL = 4
+
 
 import sys
 import usb.core
@@ -76,7 +78,7 @@ def get_data(data):
 	# - 1 to 254: means ON
 	
 	i = 0
-	while i<4:
+	while i<NB_CHANNEL:
 		# Get DMX order for the channel
 		dmxorder = data[channel+i]
 		if dmxorder > 127:
@@ -86,7 +88,7 @@ def get_data(data):
 
 		# send to arduino
 		try:
-			sercom.write(strtosend)
+			sercom.write(strtosend + '\n')
 		except:
 			print("ERROR: unable to send '{}' to arduino board".format(strtosend))
 		

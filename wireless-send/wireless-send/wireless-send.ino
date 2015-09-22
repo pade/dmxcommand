@@ -20,8 +20,10 @@
 /*
  * Global data
  */
-const unsigned int buttonPin[NB_CHANNEL] = {8, 9, 10, 11};
+const unsigned int buttonPin[NB_CHANNEL] = {8, 9, 10, 11}; // pin of inputs buttons
 RH_ASK driver;
+String inputString = "";         // a string to hold incoming data
+boolean stringComplete = false;  // whether the string is complete
 
 void setup() {
 
@@ -29,6 +31,8 @@ void setup() {
 
   Serial.begin(9600);
   Serial.println("Sender initialisation...");
+  // reserve 50 bytes for the inputString:
+  inputString.reserve(50);
   
   pinMode(13, OUTPUT);
   for (i=0; i<10; i++)
@@ -53,6 +57,9 @@ void setup() {
 
 void loop() {
 
+  /* Get DMX data from serial line */
+  serialEvent();
+  
   // dmxState and lastDmxState: must be keep at every loop, so declare as static
   /*static unsigned int dmxState[NB_CHANNEL] = {0, 0, 0, 0};
   static unsigned int lastDmxState[NB_CHANNEL] = {0, 0, 0, 0};
@@ -142,9 +149,48 @@ void loop() {
 
 orderState_t getDmxOrder(unsigned int channel)
 {
-  /*
-   * TODO
+    /*
+   * Return 3 state order, according to input channel (read from serial line)
+   *  - NO_CHANGE: same state as previous one
+   *  - ORDER_OFF: button state switch to OFF (preceding state was ON)
+   *  - ORDER_ON: button state switch to ON (preceding state was OFF)
    */
+   
+  // lastDmxState: must be keep at every loop, so declare as static
+  // initialize to -1 to force a return different from NO_CHANGE for the first call
+  static int lastDmxState[NB_CHANNEL] = { -1, -1, -1, -1};
+   
+  /* if a new order is received */
+  if (stringComplete)
+  {
+    if (inputString.startsWith(String(channel) + ":")
+    {
+      /* This order is for our channel */
+      if (inputString.endsWith("ON")
+      {
+        if (lastDmxState[channel] != ORDER_ON)
+        {
+          /* New ON order */
+          lastDmxState[channel] = ORDER_ON;
+          return ORDER_ON;
+        }
+      }
+      else if (inputString.endsWith("OFF")
+      {
+        if (lastDmxState[channel] != ORDER_OFF)
+        {
+          /* New OFF order */
+          lastDmxState[channel] = ORDER_OFF;
+          return ORDER_OFF;
+        }
+      }
+    }
+    // clear the string
+    inputString = "";
+    stringComplete = false; 
+  }
+
+  /* in all other cases, return NO_CHANGE */
   return NO_CHANGE;
 }
 
@@ -157,8 +203,8 @@ orderState_t getButtonOrder(unsigned int channel)
    *  - ORDER_ON: button state switch to ON (preceding state was OFF)
    */
 
-  // inputState and lastInputState: must be keep at every loop, so declare as static
-  // initialze to -1 to force a return different from NO_CHANGE for the first call
+  // lastInputState: must be keep at every loop, so declare as static
+  // initialize to -1 to force a return different from NO_CHANGE for the first call
   static int lastInputState[NB_CHANNEL] = { -1, -1, -1, -1};
 
   int buttonState = (int) readButton(channel);
@@ -221,4 +267,25 @@ unsigned int readButton(unsigned int channel)
   return lastReturnValue[channel];
 }
 
+/*
+  SerialEvent occurs whenever a new data comes in the
+ hardware serial RX.  This routine is run between each
+ time loop() runs.  Multiple bytes of data may be available.
+ */
+void serialEvent()
+{
+  while (Serial.available())
+  {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // add it to the inputString:
+    inputString += inChar;
+    // if the incoming character is a newline, set a flag
+    // so the main loop can do something about it:
+    if (inChar == '\n')
+    {
+      stringComplete = true;
+    }
+  }
+}
 
