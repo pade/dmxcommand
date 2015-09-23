@@ -78,22 +78,24 @@ def get_data(data):
 	# - 1 to 254: means ON
 	
 	i = 0
+	strtosend = ""
 	while i<NB_CHANNEL:
 		# Get DMX order for the channel
 		dmxorder = data[channel+i]
 		if dmxorder > 127:
-			strtosend = "{}:ON".format(i)
+			strtosend += "{}:ON&".format(i)
 		else:
-			strtosend = "{}:OFF".format(i)
+			strtosend += "{}:OFF&".format(i)
 
-		# send to arduino
-		try:
-			sercom.write(strtosend + '\n')
-		except:
-			print("ERROR: unable to send '{}' to arduino board".format(strtosend))
-		
-		print(strtosend)
 		i = i+1
+	# send to arduino
+	try:
+		# suppress last '&' characters unused
+		sercom.write(strtosend[:-1] + '\n')
+	except:
+		print("ERROR: unable to send '{}' to arduino board".format(strtosend))
+	
+	print(strtosend)
 	
 def get_serial(evt, ser):
 	'''Manage serial data comming from arduino'''
