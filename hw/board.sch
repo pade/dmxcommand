@@ -1,5 +1,5 @@
 EESchema Schematic File Version 2
-LIBS:shield_arduino
+LIBS:board-rescue
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -11,7 +11,6 @@ LIBS:cmos4000
 LIBS:adc-dac
 LIBS:memory
 LIBS:xilinx
-LIBS:special
 LIBS:microcontrollers
 LIBS:dsp
 LIBS:microchip
@@ -30,8 +29,9 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
+LIBS:shield_arduino
 LIBS:board-cache
-EELAYER 27 0
+EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -57,7 +57,7 @@ F 3 "" H 4525 3100 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R1
+L R-RESCUE-board R1
 U 1 1 55FD3C19
 P 2350 3750
 F 0 "R1" V 2430 3750 40  0000 C CNN
@@ -68,7 +68,7 @@ F 3 "~" H 2350 3750 30  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C1
+L C-RESCUE-board C1
 U 1 1 55FD3C28
 P 2350 4450
 F 0 "C1" H 2350 4550 40  0000 L CNN
@@ -90,7 +90,7 @@ F 3 "~" H 2750 4550 60  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L GND #PWR01
+L GND-RESCUE-board #PWR01
 U 1 1 55FD3C70
 P 2350 5200
 F 0 "#PWR01" H 2350 5200 30  0001 C CNN
@@ -115,7 +115,7 @@ Wire Wire Line
 Connection ~ 2350 4950
 Connection ~ 2350 4100
 $Comp
-L R R4
+L R-RESCUE-board R4
 U 1 1 55FFADFE
 P 3150 5700
 F 0 "R4" V 3230 5700 40  0000 C CNN
@@ -126,7 +126,7 @@ F 3 "~" H 3150 5700 30  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C4
+L C-RESCUE-board C4
 U 1 1 55FFAE0D
 P 3150 6350
 F 0 "C4" H 3150 6450 40  0000 L CNN
@@ -148,7 +148,7 @@ F 3 "~" H 3700 6300 60  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L GND #PWR02
+L GND-RESCUE-board #PWR02
 U 1 1 55FFAE8C
 P 3150 6800
 F 0 "#PWR02" H 3150 6800 30  0001 C CNN
@@ -173,7 +173,7 @@ Wire Wire Line
 	3700 6700 3150 6700
 Connection ~ 3150 6700
 $Comp
-L GND #PWR03
+L GND-RESCUE-board #PWR03
 U 1 1 55FFAFE2
 P 3170 2675
 F 0 "#PWR03" H 3170 2675 30  0001 C CNN
@@ -184,7 +184,7 @@ F 3 "" H 3170 2675 60  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L LED D1
+L LED-RESCUE-board D1
 U 1 1 55FFB090
 P 3525 2675
 F 0 "D1" H 3525 2775 50  0000 C CNN
@@ -195,7 +195,7 @@ F 3 "~" H 3525 2675 60  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L R R5
+L R-RESCUE-board R5
 U 1 1 55FFB09F
 P 4200 2675
 F 0 "R5" V 4280 2675 40  0000 C CNN
@@ -228,7 +228,7 @@ Wire Wire Line
 	2625 4125 2625 4250
 Connection ~ 2625 4250
 $Comp
-L R R3
+L R-RESCUE-board R3
 U 1 1 56000B5A
 P 1600 5675
 F 0 "R3" V 1680 5675 40  0000 C CNN
@@ -239,7 +239,7 @@ F 3 "~" H 1600 5675 30  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C3
+L C-RESCUE-board C3
 U 1 1 56000B60
 P 1600 6325
 F 0 "C3" H 1600 6425 40  0000 L CNN
@@ -261,7 +261,7 @@ F 3 "~" H 2150 6275 60  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L GND #PWR04
+L GND-RESCUE-board #PWR04
 U 1 1 56000B72
 P 1600 6775
 F 0 "#PWR04" H 1600 6775 30  0001 C CNN
@@ -295,7 +295,7 @@ Text GLabel 4300 3975 0    60   Input ~ 0
 Wire Wire Line
 	4300 3975 4800 3975
 $Comp
-L R R2
+L R-RESCUE-board R2
 U 1 1 56000BD3
 P 1000 3975
 F 0 "R2" V 1080 3975 40  0000 C CNN
@@ -306,7 +306,7 @@ F 3 "~" H 1000 3975 30  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C2
+L C-RESCUE-board C2
 U 1 1 56000BD9
 P 1000 4625
 F 0 "C2" H 1000 4725 40  0000 L CNN
@@ -328,7 +328,7 @@ F 3 "~" H 1550 4575 60  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L GND #PWR05
+L GND-RESCUE-board #PWR05
 U 1 1 56000BEB
 P 1000 5075
 F 0 "#PWR05" H 1000 5075 30  0001 C CNN
@@ -362,7 +362,7 @@ Text GLabel 4425 3850 0    60   Input ~ 0
 Wire Wire Line
 	4425 3850 4800 3850
 $Comp
-L GND #PWR06
+L GND-RESCUE-board #PWR06
 U 1 1 56000C4A
 P 3170 2950
 F 0 "#PWR06" H 3170 2950 30  0001 C CNN
@@ -373,7 +373,7 @@ F 3 "" H 3170 2950 60  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L LED D2
+L LED-RESCUE-board D2
 U 1 1 56000C50
 P 3525 2950
 F 0 "D2" H 3525 3050 50  0000 C CNN
@@ -384,7 +384,7 @@ F 3 "~" H 3525 2950 60  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L R R6
+L R-RESCUE-board R6
 U 1 1 56000C56
 P 4200 2950
 F 0 "R6" V 4280 2950 40  0000 C CNN
@@ -399,7 +399,7 @@ Wire Wire Line
 Wire Wire Line
 	3150 2950 3325 2950
 $Comp
-L GND #PWR07
+L GND-RESCUE-board #PWR07
 U 1 1 56000C5E
 P 3170 3200
 F 0 "#PWR07" H 3170 3200 30  0001 C CNN
@@ -410,7 +410,7 @@ F 3 "" H 3170 3200 60  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L LED D3
+L LED-RESCUE-board D3
 U 1 1 56000C64
 P 3525 3200
 F 0 "D3" H 3525 3300 50  0000 C CNN
@@ -421,7 +421,7 @@ F 3 "~" H 3525 3200 60  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L R R7
+L R-RESCUE-board R7
 U 1 1 56000C6A
 P 4200 3200
 F 0 "R7" V 4280 3200 40  0000 C CNN
@@ -436,7 +436,7 @@ Wire Wire Line
 Wire Wire Line
 	3150 3200 3325 3200
 $Comp
-L GND #PWR08
+L GND-RESCUE-board #PWR08
 U 1 1 56000C72
 P 3170 3475
 F 0 "#PWR08" H 3170 3475 30  0001 C CNN
@@ -447,7 +447,7 @@ F 3 "" H 3170 3475 60  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L LED D4
+L LED-RESCUE-board D4
 U 1 1 56000C78
 P 3525 3475
 F 0 "D4" H 3525 3575 50  0000 C CNN
@@ -458,7 +458,7 @@ F 3 "~" H 3525 3475 60  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L R R8
+L R-RESCUE-board R8
 U 1 1 56000C7E
 P 4200 3475
 F 0 "R8" V 4280 3475 40  0000 C CNN
@@ -519,7 +519,7 @@ F 3 "" H 6375 2375 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR010
+L GND-RESCUE-board #PWR010
 U 1 1 56000DD2
 P 7975 2800
 F 0 "#PWR010" H 7975 2800 30  0001 C CNN
@@ -558,7 +558,7 @@ Wire Wire Line
 Wire Wire Line
 	4700 5400 5275 5400
 $Comp
-L GND #PWR011
+L GND-RESCUE-board #PWR011
 U 1 1 56000FFE
 P 5375 5675
 F 0 "#PWR011" H 5375 5675 30  0001 C CNN
@@ -644,7 +644,7 @@ F 3 "" H 7500 3325 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R?
+L R-RESCUE-board R?
 U 1 1 56001478
 P 7500 3700
 F 0 "R?" V 7580 3700 40  0000 C CNN
@@ -655,7 +655,7 @@ F 3 "~" H 7500 3700 30  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L LED D?
+L LED-RESCUE-board D?
 U 1 1 56001487
 P 7500 4350
 F 0 "D?" H 7500 4450 50  0000 C CNN
@@ -666,7 +666,7 @@ F 3 "~" H 7500 4350 60  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR?
+L GND-RESCUE-board #PWR?
 U 1 1 56001496
 P 7500 4725
 F 0 "#PWR?" H 7500 4725 30  0001 C CNN

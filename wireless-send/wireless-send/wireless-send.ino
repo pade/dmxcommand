@@ -1,6 +1,3 @@
-
-
-
 #include "types.h"
 /* radiohead: 433MHz communication library
  * https://github.com/pade/radiohead.git
@@ -159,30 +156,33 @@ orderState_t getDmxOrder(unsigned int channel)
   // lastDmxState: must be keep at every loop, so declare as static
   // initialize to -1 to force a return different from NO_CHANGE for the first call
   static int lastDmxState[NB_CHANNEL] = { -1, -1, -1, -1};
-   
+
+  String inputOrder[NB_CHANNEL];
+
   /* if a new order is received */
   if (stringComplete)
   {
-    if (inputString.startsWith(String(channel) + ":")
+    Serial.println("INPUT: " + inputString);
+    splitInputString(inputString, inputOrder) ;
+    Serial.println("CH VAL: " + inputOrder[channel]);
+    
+    /* This order is for our channel */
+    if (inputOrder[channel] == "ON")
     {
-      /* This order is for our channel */
-      if (inputString.endsWith("ON")
+      if (lastDmxState[channel] != ORDER_ON)
       {
-        if (lastDmxState[channel] != ORDER_ON)
-        {
-          /* New ON order */
-          lastDmxState[channel] = ORDER_ON;
-          return ORDER_ON;
-        }
+        /* New ON order */
+        lastDmxState[channel] = ORDER_ON;
+        return ORDER_ON;
       }
-      else if (inputString.endsWith("OFF")
+    }
+    else if (inputOrder[channel] == "OFF")
+    {
+      if (lastDmxState[channel] != ORDER_OFF)
       {
-        if (lastDmxState[channel] != ORDER_OFF)
-        {
-          /* New OFF order */
-          lastDmxState[channel] = ORDER_OFF;
-          return ORDER_OFF;
-        }
+        /* New OFF order */
+        lastDmxState[channel] = ORDER_OFF;
+        return ORDER_OFF;
       }
     }
     // clear the string
@@ -286,6 +286,25 @@ void serialEvent()
     {
       stringComplete = true;
     }
+  }
+}
+
+void splitInputString(String input, String return_value[NB_CHANNEL])
+{
+  char *data[64]= {0};
+  char *token, *subtoken;
+  int i = 0, channel;
+
+  // Copy input string
+  input.toCharArray(*data, sizeof(data));
+
+  while ((data != NULL) && (i < NB_CHANNEL))
+  {
+    token = strsep(data, "&");
+    subtoken = strsep(&token, ":");
+    channel = atoi(subtoken);
+    return_value[channel] = String(token);
+    i++;
   }
 }
 

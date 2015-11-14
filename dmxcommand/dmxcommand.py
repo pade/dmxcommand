@@ -30,8 +30,8 @@ __PROMPT__ = "Press 'q' to quit >>> "
 # TO BE DEFINE
 #IDPRODUCT = 0x4d03
 #IDVENDOR = 0x0461
-IDPRODUCT = 0x7523
-IDVENDOR = 0x1a86
+IDPRODUCT = '7523'
+IDVENDOR = '1a86'
 
 NB_CHANNEL = 4
 
@@ -41,6 +41,8 @@ import usb.core
 import serial
 import threading
 import argparse
+import time
+import pyudev
 from ola.ClientWrapper import ClientWrapper
 
 # channel and sercom must be global to be accessible from callback function
@@ -48,25 +50,22 @@ channel = 0
 sercom = None
 
 
-def find_board(bus=None, idVendor=IDVENDOR, idProduct=IDPRODUCT):
+def find_board(idVendor=IDVENDOR, idProduct=IDPRODUCT):
 	'''Search the ardruino board over USB present devices
 	- Parameter: 
-		bus: specify the USB bus where to search the board. If not specify, search on all buses
-		idVendor and idProduct: ID to search, If both are 0x0, then seaerch all product and all vendor (debug purpose)
-	- Return: a list of mount point of all ardruino boards found, or an empty list if no board were found 
+		idVendor and idProduct: ID to search
+	- Return: The mount point of the first ardruino board found, or None if no board were found 
 	'''
-	if idVendor==0x0 and idProduct==0x0:
-		dev = usb.core.find(find_all=True)
-	else:
-		dev = usb.core.find(find_all=True, idVendor=idVendor, idProduct=idProduct)
-		
-	if dev is None:
-		return []
 	
-	lst = []
-	for device in dev:
-		lst.append("/dev/bus/usb/%03d/%03d" % (device.bus, device.address))
-	return lst
+	ret_value = None
+	context = pyudev.Context()
+	
+	for device in context.list_devices(subsystem='tty'):
+		if device.get('ID_VENDOR_ID') == idVendor and device.get('ID_MODEL_ID') == idProduct:
+			ret_value = device.device_node
+			break
+	
+	return ret_value
 
 def get_data(data):
 	""" Data received
@@ -91,9 +90,14 @@ def get_data(data):
 	# send to arduino
 	try:
 		# suppress last '&' characters unused
+		global sercom
 		sercom.write(strtosend[:-1] + '\n')
+		
+		# wait to let arduino working
+		time.sleep(0.2)
 	except:
 		print("ERROR: unable to send '{}' to arduino board".format(strtosend))
+		raise
 	
 	print(strtosend)
 	
@@ -109,12 +113,13 @@ def get_serial(evt, ser):
 			print(__PROMPT__ + "\033[1m{}\033[0m".format(line))
 		else:
 			# DEBUG
-			print(__PROMPT__ + "\033[1mDEBUG\033[0m".format(line))
-
+			#print(__PROMPT__ + "\033[1mDEBUG\033[0m".format(line))
+			pass
 			
 	
 	#Stop serial communication with arduino
-	ser.close()
+	global sercom
+	sercom.close()
 	
 def get_keyboard(evt):
 	''' Read keyboard input and exit program when 'q' is pressed'''
@@ -159,20 +164,16 @@ def main():
 	# Find arduino board
 	usb_dev = find_board()
 	
-	if len(usb_dev) == 0:
+	if usb_dev is None:
 		# No board found
 		sys.exit("\nError: no arduino board found !\n\n")
-	
-	if len(usb_dev) > 1:
-		# Several board found, not managed yet
-		sys.exit("\nError: several arduino board found, please let only one\n\n")
 
-	print("\nFind arduino board on device {}\n".format(usb_dev[0]))
+	print("\nFind arduino board on device {}\n".format(usb_dev))
 		
 	# Open serial communication
 	try:
-		sercom = serial.Serial(usb_dev[0], 9600, timeout=0.5, writeTimeout=1)
-		#sercom = serial.Serial("/dev/ttyS0", 9600, timeout=0.5, writeTimeout=1)
+		global sercom
+		sercom = serial.Serial(usb_dev, 9600, timeout=0.5, writeTimeout=1)
 	except:
 		# Cannot open serial line with arduino
 		raise
@@ -184,7 +185,7 @@ def main():
 	- DMX channel {}: alloc1ated to arduino channel 1
 	- DMX channel {}: allocated to arduino channel 2
 	- DMX channel {}: allocated to arduino channel 3
-""".format(channel, channel+1, channel+2, channel+3, channel+4))	
+""".format(channel, channel+1, channel+2, channel+3))	
 		
 	universe = 1
 	wrapper = ClientWrapper()
