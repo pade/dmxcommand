@@ -89,12 +89,11 @@ def get_data(data):
 		i = i+1
 	# send to arduino
 	try:
-		# suppress last '&' characters unused
 		global sercom
-		sercom.write(strtosend[:-1] + '\n')
+		sercom.write(strtosend)
 		
 		# wait to let arduino working
-		time.sleep(0.2)
+		time.sleep(0.4)
 	except:
 		print("ERROR: unable to send '{}' to arduino board".format(strtosend))
 		raise

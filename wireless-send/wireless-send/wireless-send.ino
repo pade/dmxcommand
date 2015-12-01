@@ -146,7 +146,7 @@ void loop() {
 
 orderState_t getDmxOrder(unsigned int channel)
 {
-    /*
+   /*
    * Return 3 state order, according to input channel (read from serial line)
    *  - NO_CHANGE: same state as previous one
    *  - ORDER_OFF: button state switch to OFF (preceding state was ON)
@@ -162,9 +162,9 @@ orderState_t getDmxOrder(unsigned int channel)
   /* if a new order is received */
   if (stringComplete)
   {
-    Serial.println("INPUT: " + inputString);
+    //Serial.println("INPUT: " + inputString);
     splitInputString(inputString, inputOrder) ;
-    Serial.println("CH VAL: " + inputOrder[channel]);
+    //Serial.println("CH VAL: " + inputOrder[channel]);
     
     /* This order is for our channel */
     if (inputOrder[channel] == "ON")
@@ -267,13 +267,14 @@ unsigned int readButton(unsigned int channel)
   return lastReturnValue[channel];
 }
 
-/*
+
+void serialEvent()
+{
+  /*
   SerialEvent occurs whenever a new data comes in the
  hardware serial RX.  This routine is run between each
  time loop() runs.  Multiple bytes of data may be available.
  */
-void serialEvent()
-{
   while (Serial.available())
   {
     // get the new byte:
@@ -285,26 +286,25 @@ void serialEvent()
     if (inChar == '\n')
     {
       stringComplete = true;
+      break;
     }
   }
 }
 
-void splitInputString(String input, String return_value[NB_CHANNEL])
+int splitInputString(String input, String return_value)
 {
   char *data[64]= {0};
   char *token, *subtoken;
   int i = 0, channel;
+  String strChannel, strOrder;
 
-  // Copy input string
-  input.toCharArray(*data, sizeof(data));
+  strChannel = input.substring(0);
+  return_value = input.substring(2, input.length());
 
-  while ((data != NULL) && (i < NB_CHANNEL))
+  if((return_value != "ON") && (return_value != "OFF"))
   {
-    token = strsep(data, "&");
-    subtoken = strsep(&token, ":");
-    channel = atoi(subtoken);
-    return_value[channel] = String(token);
-    i++;
+    return -1;
   }
+  return strChannel.toInt();
 }
 
