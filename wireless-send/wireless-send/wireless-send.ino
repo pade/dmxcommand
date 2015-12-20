@@ -17,10 +17,13 @@
 /*
  * Global data
  */
-const unsigned int buttonPin[NB_CHANNEL] = {8, 9, 10, 11}; // pin of inputs buttons
+const unsigned int buttonPin[NB_CHANNEL] = {6, 7, 8, 9}; // pin of inputs buttons
+const unsigned int ledPin[NB_CHANNEL] = {2, 3, 4, 5}; // pin of output led
+
 RH_ASK driver;
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
+String dmxOrder[NB_CHANNEL] = {"OFF", "OFF", "OFF", "OFF"};
 
 void setup() {
 
@@ -42,11 +45,14 @@ void setup() {
   if (!driver.init())
     Serial.println("RF driver failed");
 
-  // Initialize input pin for button
+  // Initialize input pin for button an doutput pin for led
   for (i = 0; i < NB_CHANNEL; i++)
   {
     // configure pin as input with the pullup
     pinMode(buttonPin[i], INPUT_PULLUP);
+
+    // configure pin as ouput
+    pinMode(ledPin[i], OUTPUT);
   }
   
 
@@ -56,11 +62,6 @@ void loop() {
 
   /* Get DMX data from serial line */
   serialEvent();
-  
-  // dmxState and lastDmxState: must be keep at every loop, so declare as static
-  /*static unsigned int dmxState[NB_CHANNEL] = {0, 0, 0, 0};
-  static unsigned int lastDmxState[NB_CHANNEL] = {0, 0, 0, 0};
-  */
 
   static int lastSendState[NB_CHANNEL] = {OFF, OFF, OFF, OFF};
 
@@ -70,16 +71,23 @@ void loop() {
     strtosend += i;
     strtosend += ":";
 
-    orderState_t buttonOrder = getButtonOrder(i) ;;
+    orderState_t buttonOrder = getButtonOrder(i) ;
     orderState_t dmxOrder = getDmxOrder(i);
+    //orderState_t dmxOrder = NO_CHANGE;
 
     if ((buttonOrder == NO_CHANGE) && (dmxOrder == NO_CHANGE))
     {
       /* No new order, send last order */
       if (lastSendState[i] == ON)
+      {
         strtosend += "ON" ;
+        digitalWrite(ledPin[i], HIGH);
+      }
       else
+      {
         strtosend += "OFF";
+        digitalWrite(ledPin[i], LOW);
+      }
     }
     else if ((buttonOrder != NO_CHANGE) && (dmxOrder == NO_CHANGE))
     {
@@ -88,14 +96,13 @@ void loop() {
       {
         strtosend += "ON" ;
         lastSendState[i] = ON ;
-        digitalWrite(13, HIGH);
-
+        digitalWrite(ledPin[i], HIGH);
       }
       else
       {
         strtosend += "OFF" ;
         lastSendState[i] = OFF ;
-        digitalWrite(13, LOW);
+        digitalWrite(ledPin[i], LOW);
       }
     }
     else if ((buttonOrder == NO_CHANGE) && (dmxOrder != NO_CHANGE))
@@ -105,13 +112,13 @@ void loop() {
       {
         strtosend += "ON" ;
         lastSendState[i] = ON ;
-        digitalWrite(13, HIGH);
+        digitalWrite(ledPin[i], HIGH);
       }
       else
       {
         strtosend += "OFF" ;
         lastSendState[i] = OFF ;
-        digitalWrite(13, LOW);
+        digitalWrite(ledPin[i], LOW);
       }
     }
     else
@@ -123,13 +130,13 @@ void loop() {
       {
         strtosend += "ON" ;
         lastSendState[i] = ON ;
-        digitalWrite(13, HIGH);
+        digitalWrite(ledPin[i], HIGH);
       }
       else
       {
         strtosend += "OFF" ;
         lastSendState[i] = OFF ;
-        digitalWrite(13, LOW);
+        digitalWrite(ledPin[i], LOW);
       }
     }
 
@@ -139,8 +146,8 @@ void loop() {
     //Serial.println(strtosend);
     driver.send((uint8_t *)strtosend.c_str(), strtosend.length());
     driver.waitPacketSent();
-    delay(200);
   }
+  delay(200);
 
 }
 
@@ -157,37 +164,29 @@ orderState_t getDmxOrder(unsigned int channel)
   // initialize to -1 to force a return different from NO_CHANGE for the first call
   static int lastDmxState[NB_CHANNEL] = { -1, -1, -1, -1};
 
-  String inputOrder[NB_CHANNEL];
-
-  /* if a new order is received */
-  if (stringComplete)
-  {
-    //Serial.println("INPUT: " + inputString);
-    splitInputString(inputString, inputOrder) ;
-    //Serial.println("CH VAL: " + inputOrder[channel]);
+  //Serial.println(channel);
+  //Serial.println(dmxOrder[channel]);
     
-    /* This order is for our channel */
-    if (inputOrder[channel] == "ON")
+  /* This order is for our channel */
+  if (dmxOrder[channel] == "ON")
+  {
+    if (lastDmxState[channel] != ORDER_ON)
     {
-      if (lastDmxState[channel] != ORDER_ON)
-      {
-        /* New ON order */
-        lastDmxState[channel] = ORDER_ON;
-        return ORDER_ON;
-      }
+      /* New ON order */
+      lastDmxState[channel] = ORDER_ON;
+      Serial.println("Change ON");
+      return ORDER_ON;
     }
-    else if (inputOrder[channel] == "OFF")
+  }
+  else if (dmxOrder[channel] == "OFF")
+  {
+    if (lastDmxState[channel] != ORDER_OFF)
     {
-      if (lastDmxState[channel] != ORDER_OFF)
-      {
-        /* New OFF order */
-        lastDmxState[channel] = ORDER_OFF;
-        return ORDER_OFF;
-      }
+      /* New OFF order */
+      lastDmxState[channel] = ORDER_OFF;
+      Serial.println("Change OFF");
+      return ORDER_OFF;
     }
-    // clear the string
-    inputString = "";
-    stringComplete = false; 
   }
 
   /* in all other cases, return NO_CHANGE */
@@ -277,34 +276,74 @@ void serialEvent()
  */
   while (Serial.available())
   {
+    int channel;
+    String order;
     // get the new byte:
     char inChar = (char)Serial.read();
     // add it to the inputString:
     inputString += inChar;
-    // if the incoming character is a newline, set a flag
-    // so the main loop can do something about it:
+    // if the incoming character is a newline, fill dmxOrder table
     if (inChar == '\n')
     {
-      stringComplete = true;
+      //Serial.println(inputString);
+      if ((channel = splitInputString(inputString, &order)) != 0)
+      {
+        /* Save new dmxOrder */
+        dmxOrder[channel-1] = order ;
+      }
+      else
+      {
+        
+      /* Error: receive order is not correct */
+      /* DMX order not taking into account */
+      }
+
+      // reset inputString
+      inputString = "";
       break;
     }
   }
 }
 
-int splitInputString(String input, String return_value)
+int splitInputString(String input, String *order)
 {
-  char *data[64]= {0};
-  char *token, *subtoken;
-  int i = 0, channel;
-  String strChannel, strOrder;
+  /* Split 'input' parameter order
+   *  'input' must be like: "<channel number>:ON|OFF"
+   *  - return the input channel, or 0 in case of error
+   *  - fill 'order' parameter to the receive order
+   */
 
-  strChannel = input.substring(0);
-  return_value = input.substring(2, input.length());
-
-  if((return_value != "ON") && (return_value != "OFF"))
+  int channel;
+  
+  if ((channel = input.substring(0).toInt()) == 0)
   {
-    return -1;
+    /* channel is 0: means an transmit error */
+    /* Set return_value to an empty String */
+    *order = "" ;
+    Serial.println("ERROR CHANNEL");  
+    return 0;
   }
-  return strChannel.toInt();
+
+  if (channel > NB_CHANNEL)
+  {
+    /* channel out of range */
+     *order = "" ;
+     return 0;
+  }
+  
+  *order = input.substring(2, input.length());
+
+  if((*order).startsWith("ON"))
+  {
+    *order = "ON";
+    return channel;
+  }
+  else if((*order).startsWith("OFF"))
+  {
+    *order = "OFF";
+    return channel;
+  }
+  // Error: order not recognize
+  return 0;
 }
 

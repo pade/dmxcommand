@@ -12,7 +12,7 @@
  * Input channel affected to this board
  * TODO: select input thanks to a DIP switch
  */
-#define CHANNEL '1'
+#define CHANNEL '3'
 
 /*
  * Limited max message lenght to preserve RAM
@@ -50,8 +50,8 @@ void loop() {
   if (driver.recv(buf, &buflen)) // Non-blocking
   {
     // Message with a good checksum received, dump it.
-    Serial.write(buf, buflen);
-    Serial.println("");
+    //Serial.write(buf, buflen);
+    //Serial.println("");
 
     // Check if message is for our channel
     if((buf[0] == CHANNEL) && (buf[1] == ':'))
@@ -60,11 +60,13 @@ void loop() {
       if((buf[2] == 'O') && (buf[3] == 'N'))
       {
         // TODO: ON
+        //Serial.println("ON");
         digitalWrite(LED_BUILTIN, HIGH);
       }
       else if((buf[2] == 'O') && (buf[3] == 'F') && (buf[4] == 'F'))
       {
         // TODO: OFF
+        //Serial.println("OFF");
         digitalWrite(LED_BUILTIN, LOW);
       }
     }

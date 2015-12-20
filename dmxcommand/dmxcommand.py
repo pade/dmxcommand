@@ -70,6 +70,8 @@ def find_board(idVendor=IDVENDOR, idProduct=IDPRODUCT):
 def get_data(data):
 	""" Data received
 	data is a 512 array of bytes. DMX channel is the index and the value is the DMX value
+	Send corresponding DMX cahnnel order to Arduino channel
+	Arduino channel: from 1 to 4
 	"""
 	
 	# DMX value decoding:
@@ -77,28 +79,28 @@ def get_data(data):
 	# - 1 to 254: means ON
 	
 	i = 0
-	strtosend = ""
 	while i<NB_CHANNEL:
 		# Get DMX order for the channel
 		dmxorder = data[channel+i]
 		if dmxorder > 127:
-			strtosend += "{}:ON&".format(i)
+			strtosend = "{}:ON".format(i+1)
 		else:
-			strtosend += "{}:OFF&".format(i)
+			strtosend = "{}:OFF".format(i+1)
 
 		i = i+1
-	# send to arduino
-	try:
-		global sercom
-		sercom.write(strtosend)
 		
-		# wait to let arduino working
-		time.sleep(0.4)
-	except:
-		print("ERROR: unable to send '{}' to arduino board".format(strtosend))
-		raise
+		# send to arduino
+		try:
+			global sercom
+			sercom.write(strtosend + '\n');
+			
+			# wait to let arduino working
+			time.sleep(0.4)
+		except:
+			print("ERROR: unable to send '{}' to arduino board".format(strtosend))
+			raise
 	
-	print(strtosend)
+		#print(strtosend)
 	
 def get_serial(evt, ser):
 	'''Manage serial data comming from arduino'''
@@ -180,10 +182,10 @@ def main():
 	
 	print("Working on universe {}".format(universe))
 	print("""Used DMX channel:
-	- DMX channel {}: allocated to arduino channel 0
-	- DMX channel {}: alloc1ated to arduino channel 1
-	- DMX channel {}: allocated to arduino channel 2
+	- DMX channel {}: allocated to arduino channel 1
+	- DMX channel {}: alloc1ated to arduino channel 2
 	- DMX channel {}: allocated to arduino channel 3
+	- DMX channel {}: allocated to arduino channel 4
 """.format(channel, channel+1, channel+2, channel+3))	
 		
 	universe = 1
