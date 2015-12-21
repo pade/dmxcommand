@@ -92,7 +92,7 @@ def get_data(data):
 		# send to arduino
 		try:
 			global sercom
-			sercom.write(strtosend + '\n');
+			sercom.write(strtosend + '\n');		
 			
 			# wait to let arduino working
 			time.sleep(0.4)
